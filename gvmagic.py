@@ -23,10 +23,28 @@ from IPython.core.magic import (
 )
 from IPython.utils.warn import info, error
 
+from os.path import join
+from sys import exec_prefix
+from glob import glob
+
+def get_dot_path():
+    candidates = []
+    if exec_prefix.find('WinPython') >= 0:
+        # running under windows from the WinPython distribution
+        # get the path to graphviz
+        candidates = glob(join(exec_prefix.split('WinPython',1)[0], 'Grapviz', 'graphviz-*-win', 'bin', 'dot.exe'))
+        
+    if len(candidates)>0:
+        return candidates
+    else:
+        # let Python find it
+        return 'dot'
+
+_DOT_EXEC = get_dot_path()
 
 def rundot(s):
     """Execute dot and return a raw SVG image, or None."""
-    dot = Popen(['dot', '-Tsvg'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    dot = Popen([_DOT_EXEC, '-Tsvg'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdoutdata, stderrdata = dot.communicate(s.encode('utf-8'))
     status = dot.wait()
     if status == 0:
