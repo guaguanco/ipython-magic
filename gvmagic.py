@@ -35,7 +35,7 @@ def get_dot_path():
         candidates = glob(join(exec_prefix.split('WinPython',1)[0], 'Grapviz', 'graphviz-*-win', 'bin', 'dot.exe'))
         
     if len(candidates)>0:
-        return candidates
+        return candidates[0]
     else:
         # let Python find it
         return 'dot'
