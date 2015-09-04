@@ -12,3 +12,12 @@ Contents:
 
 * Graphviz Magics (``gvmagic.py``):
   ``%dot``, ``%dotstr``, ``%dotobj``, ``%dotobjs``
+  ``%neato``, ``%neatostr``, ``%neatoobj``, ``%neatoobjs``
+  ``%circo``, ``%circostr``, ``%circoobj``, ``%circoobjs``
+  ``%fdp``, ``%fdpstr``, ``%fdpobj``, ``%fdpobjs``
+  ``%sfdp``, ``%sfdpstr``, ``%sfdpobj``, ``%sfdpobjs``
+  ``%twopi``, ``%twopistr``, ``%twopiobj``, ``%twopiobjs``
+
+Thanks to contributors:
+
+* John B. Nelson (@jbn)

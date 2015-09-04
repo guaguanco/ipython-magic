@@ -9,13 +9,12 @@ Magic methods:
     %dotobj obj.to_dot()
     %dotobjs obj[0].to_dot(), obj[1].to_dot(), ...
 
+    also: %twopi, %neato, %sdp, %fsdp, and %circo magic families.
 Usage:
-
     %load_ext gvmagic
 """
 
 from subprocess import Popen, PIPE
-
 from IPython.core.display import display_svg
 from IPython.core.magic import (
     Magics, magics_class,
@@ -27,12 +26,12 @@ from os.path import join
 from sys import exec_prefix
 from glob import glob
 
-def get_dot_path():
+def get_cmd_path(cmd):
     candidates = []
     if exec_prefix.find('WinPython') >= 0:
         # running under windows from the WinPython distribution
         # get the path to graphviz
-        candidates = glob(join(exec_prefix.split('WinPython',1)[0], 'Grapviz', 'graphviz-*-win', 'bin', 'dot.exe'))
+        candidates = glob(join(exec_prefix.split('WinPython',1)[0], 'Grapviz', 'graphviz-*-win', 'bin', cmd + '.exe'))
         
     if len(candidates)>0:
         return candidates[0]
@@ -40,11 +39,11 @@ def get_dot_path():
         # let Python find it
         return 'dot'
 
-_DOT_EXEC = get_dot_path()
+def run_graphviz(s, layout_engine='dot'):
+    """Execute dot with a layout and return a raw SVG image, or None."""
+    cmd = [get_cmd_path('dot'), '-Tsvg', '-K', layout_engine]
 
-def rundot(s):
-    """Execute dot and return a raw SVG image, or None."""
-    dot = Popen([_DOT_EXEC, '-Tsvg'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    dot = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdoutdata, stderrdata = dot.communicate(s.encode('utf-8'))
     status = dot.wait()
     if status == 0:
@@ -60,26 +59,116 @@ class GraphvizMagics(Magics):
 
     @line_cell_magic
     def dot(self, line, cell=None):
-        """dot line/cell magic"""
+        self._from_cell(line, cell, 'dot')
+
+    @line_magic
+    def dotstr(self, line):
+        self._from_str(line, 'dot')
+
+    @line_magic
+    def dotobj(self, line):
+        self._from_obj(line, 'dot')
+
+    @line_magic
+    def dotobjs(self, line):
+        self._from_objs(line, 'dot')
+
+    @line_cell_magic
+    def neato(self, line, cell=None):
+        self._from_cell(line, cell, 'neato')
+
+    @line_magic
+    def neatostr(self, line):
+        self._from_str(line, 'neato')
+
+    @line_magic
+    def neatoobj(self, line):
+        self._from_obj(line, 'neato')
+
+    @line_magic
+    def neatoobjs(self, line):
+        self._from_objs(line, 'neato')
+
+    @line_cell_magic
+    def sfdp(self, line, cell=None):
+        self._from_cell(line, cell, 'sfdp')
+
+    @line_magic
+    def sfdpstr(self, line):
+        self._from_str(line, 'sfdp')
+
+    @line_magic
+    def sfdpobj(self, line):
+        self._from_obj(line, 'sfdp')
+
+    @line_magic
+    def sfdpobjs(self, line):
+        self._from_objs(line, 'sfdp')
+
+    @line_cell_magic
+    def fdp(self, line, cell=None):
+        self._from_cell(line, cell, 'fdp')
+
+    @line_magic
+    def fdpstr(self, line):
+        self._from_str(line, 'fdp')
+
+    @line_magic
+    def fdpobj(self, line):
+        self._from_obj(line, 'fdp')
+
+    @line_magic
+    def fdpobjs(self, line):
+        self._from_objs(line, 'fdp')
+
+    @line_cell_magic
+    def twopi(self, line, cell=None):
+        self._from_cell(line, cell, 'twopi')
+
+    @line_magic
+    def twopistr(self, line):
+        self._from_str(line, 'twopi')
+
+    @line_magic
+    def twopiobj(self, line):
+        self._from_obj(line, 'twopi')
+
+    @line_magic
+    def twopiobjs(self, line):
+        self._from_objs(line, 'twopi')
+
+    @line_cell_magic
+    def circo(self, line, cell=None):
+        self._from_cell(line, cell, 'circo')
+
+    @line_magic
+    def circostr(self, line):
+        self._from_str(line, 'circo')
+
+    @line_magic
+    def circoobj(self, line):
+        self._from_obj(line, 'circo')
+
+    @line_magic
+    def circoobjs(self, line):
+        self._from_objs(line, 'circo')
+
+    def _from_cell(self, line, cell=None, layout_engine='dot'):
         if cell is None:
             s = line
         else:
             s = line + '\n' + cell
-        data = rundot(s)
+        data = run_graphviz(s, layout_engine)
         if data:
             display_svg(data, raw=True)
 
-    @line_magic
-    def dotstr(self, line):
-        """dot string magic"""
+    def _from_str(self, line, layout_engine):
         s = self.shell.ev(line)
-        data = rundot(s)
+        data = run_graphviz(s, layout_engine)
         if data:
             display_svg(data, raw=True)
 
-    @line_magic
-    def dotobj(self, line):
-        """dot object magic"""
+    def _from_obj(self, line, layout_engine):
         obj = self.shell.ev(line)
         try:
             s = obj.to_dot()
@@ -88,12 +177,11 @@ class GraphvizMagics(Magics):
         except TypeError:
             error("expected to_dot method to be callable w/o args")
         else:
-            data = rundot(s)
+            data = run_graphviz(s, layout_engine)
             if data:
                 display_svg(data, raw=True)
 
-    @line_magic
-    def dotobjs(self, line):
+    def _from_objs(self, line, layout_engine):
         """dot objects magic"""
         objs = self.shell.ev(line)
         for i, obj in enumerate(objs):
@@ -104,7 +192,7 @@ class GraphvizMagics(Magics):
             except TypeError:
                 error("expected to_dot method to be callable w/o args")
             else:
-                data = rundot(s)
+                data = run_graphviz(s, layout_engine)
                 if data:
                     info("object {}:".format(i))
                     display_svg(data, raw=True)
@@ -114,6 +202,7 @@ def load_ipython_extension(ipython):
     """Load the extension in IPython."""
     ipython.register_magics(GraphvizMagics)
 
+
 def unload_ipython_extension(ipython):
     """Unload the extension in IPython."""
-
+    pass
